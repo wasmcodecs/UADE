@@ -645,7 +645,7 @@ EOF
 fi
 
 echo
-echo "uade repository has moved to https://github.com/heikkiorsila/uade"
+echo "uade repository has moved to https://github.com/uade-music-player/uade"
 echo
 echo "Please clone that repository instead."
 sleep 1
