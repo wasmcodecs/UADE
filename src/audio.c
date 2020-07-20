@@ -93,7 +93,7 @@ static inline int clamp_sample(int o)
 
 static int filter(int input, struct filter_state *fs)
 {
-    float tmp, normal_output, led_output;
+    float normal_output, led_output;
 
     switch (sound_use_filter) {
     case FILTER_MODEL_A500: 
@@ -259,7 +259,7 @@ static void sample16si_sinc_handler (void)
 
 static void anti_prehandler(unsigned long best_evtime)
 {
-    int i, j, output;
+    int i, output;
     struct audio_channel_data *acd;
 
     /* Handle accumulator antialiasiation */
@@ -274,7 +274,7 @@ static void anti_prehandler(unsigned long best_evtime)
 
 static void sinc_prehandler(unsigned long best_evtime)
 {
-    int i, j, output;
+    int i, output;
     struct audio_channel_data *acd;
 
     for (i = 0; i < 4; i++) {
@@ -532,7 +532,6 @@ void update_audio (void)
 	unsigned long best_evtime = n_cycles + 1;
 	int i;
 	unsigned long rounded;
-	float f;
 
 	for (i = 0; i < 4; i++) {
 	    if (audio_channel[i].state != 0 && best_evtime > audio_channel[i].evtime)

@@ -76,7 +76,6 @@ int main(int argc, char **argv)
 	int cpulevel, plevel, sduse;
 	int i;
 
-	char patbits[16];
 	char opcstr[256];
 	int bitpos[16];
 	int flagset[5], flaguse[5];
@@ -122,7 +121,6 @@ int main(int argc, char **argv)
 		bitmask |= 1;
 	    if (nextch == '1')
 		bitpattern |= 1;
-	    patbits[i] = nextch;
 	    getnextch();
 	}
 
@@ -204,7 +202,9 @@ int main(int argc, char **argv)
 	if (nextch != ':')
 	    abort();
 
-	fgets(opcstr, 250, tablef);
+	if (!fgets(opcstr, 250, tablef))
+		abort();
+		
 	getnextch();
 	{
 	    int j;

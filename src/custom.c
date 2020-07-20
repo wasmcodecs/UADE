@@ -27,15 +27,11 @@
 
 #include "uadectl.h"
 
-static unsigned int n_consecutive_skipped = 0;
-static unsigned int total_skipped = 0;
-
 #define SPRITE_COLLISIONS
 
 /* Mouse and joystick emulation */
 
 static int buttonstate[3];
-static int mouse_x, mouse_y;
 int joy0button, joy1button;
 unsigned int joy0dir, joy1dir;
 
@@ -47,20 +43,13 @@ struct ev eventtab[ev_max];
 
 static int vpos;
 static uae_u16 lof;
-static int next_lineno;
 static int lof_changed = 0;
-
-static const int dskdelay = 2; /* FIXME: ??? */
-
-static uae_u32 sprtaba[256],sprtabb[256];
 
 /*
  * Hardware registers of all sorts.
  */
 
 static void custom_wput_1 (int, uaecptr, uae_u32) REGPARAM;
-
-static uae_u16 cregs[256];
 
 uae_u16 intena,intreq;
 uae_u16 dmacon;
@@ -73,55 +62,23 @@ int maxvpos = MAXVPOS_PAL;
 int minfirstline = MINFIRSTLINE_PAL;
 int vblank_endline = VBLANK_ENDLINE_PAL;
 int vblank_hz = VBLANK_HZ_PAL;
-static int fmode;
 static unsigned int beamcon0, new_beamcon0;
 static int ntscmode = 0;
 
-#define MAX_SPRITES 32
+static unsigned int bplcon0, bplcon3, bplcon4;
+static int corrected_nr_planes_from_bplcon0;
 
-/* This is but an educated guess. It seems to be correct, but this stuff
- * isn't documented well. */
-enum sprstate { SPR_stop, SPR_restart, SPR_waiting_start, SPR_waiting_stop };
-static enum sprstate sprst[8];
-static int spron[8];
-static uaecptr sprpt[8];
-static int sprxpos[8], sprvstart[8], sprvstop[8];
-
-static unsigned int sprdata[MAX_SPRITES], sprdatb[MAX_SPRITES], sprctl[MAX_SPRITES], sprpos[MAX_SPRITES];
-static int sprarmed[MAX_SPRITES], sprite_last_drawn_at[MAX_SPRITES];
-static int last_sprite_point, nr_armed;
-
-static uae_u32 bpl1dat, bpl2dat, bpl3dat, bpl4dat, bpl5dat, bpl6dat, bpl7dat, bpl8dat;
-static uae_s16 bpl1mod, bpl2mod;
-
-static uaecptr bplpt[8];
-#ifndef SMART_UPDATE
-static char *real_bplpt[8];
-#endif
-
-static unsigned int bplcon0, bplcon1, bplcon2, bplcon3, bplcon4;
-static int nr_planes_from_bplcon0, corrected_nr_planes_from_bplcon0;
-static unsigned int diwstrt, diwstop, diwhigh;
-static int diwhigh_written;
-static unsigned int ddfstrt, ddfstop;
-
-static uae_u32 dskpt;
-static uae_u16 dsklen, dsksync;
-static int dsklength;
-
-/* The display and data fetch windows */
 
 enum diw_states
 {
     DIW_waiting_start, DIW_waiting_stop
 };
 
-static int plffirstline, plflastline, plfstrt, plfstop, plflinelen;
-static int diwfirstword, diwlastword;
+static int plffirstline, plflastline, plfstrt, plflinelen;
 static enum diw_states diwstate, hdiwstate;
 
 /* Sprite collisions */
-static uae_u16 clxdat, clxcon;
+static uae_u16 clxdat;
 static int clx_sprmask;
 
 enum copper_states {
@@ -160,31 +117,12 @@ static unsigned long int seconds_base;
 int bogusframe;
 
 
-static int current_change_set;
-
-static struct sprite_draw *curr_sprite_positions, *prev_sprite_positions;
-static struct color_change *curr_color_changes, *prev_color_changes;
-static struct draw_info *curr_drawinfo, *prev_drawinfo;
-static struct color_entry *curr_color_tables, *prev_color_tables;
-
-static int next_color_change, next_sprite_draw, next_delay_change;
-static int next_color_entry, remembered_color_entry;
-static int color_src_match, color_dest_match, color_compare_result;
-
-/* These few are only needed during/at the end of the scanline, and don't
- * have to be remembered. */
-static int decided_bpl1mod, decided_bpl2mod, decided_nr_planes, decided_res;
-
-static char thisline_changed;
-
 
 #ifdef SMART_UPDATE
 #define MARK_LINE_CHANGED do { thisline_changed = 1; } while (0)
 #else
 #define MARK_LINE_CHANGED do { ; } while (0)
 #endif
-
-static int modulos_added, plane_decided, color_decided, very_broken_program;
 
 /*
  * helper functions
@@ -245,8 +183,6 @@ inline int current_hpos (void)
     return cycles - eventtab[ev_hsync].oldcycles;
 }
 
-static int broken_plane_sub[8];
-
 /* set PAL or NTSC timing variables */
 
 static void init_hz (void)
@@ -273,43 +209,9 @@ static void init_hz (void)
     // write_log ("Using %s timing\n", isntsc ? "NTSC" : "PAL");
 }
 
-/* Mousehack stuff */
-
-#define defstepx (1<<16)
-#define defstepy (1<<16)
-#define defxoffs 0
-#define defyoffs 0
-
-static const int docal = 60, xcaloff = 40, ycaloff = 20;
-static const int calweight = 3;
-static int lastsampledmx, lastsampledmy;
-static int lastspr0x,lastspr0y,lastdiffx,lastdiffy,spr0pos,spr0ctl;
-static int mstepx,mstepy,xoffs=defxoffs,yoffs=defyoffs;
-static int sprvbfl;
-
-static int lastmx, lastmy;
-static int newmousecounters;
 static int ievent_alive = 0;
 
 static int timehack_alive = 0;
-
-static uae_u32 timehack_helper (void)
-{
-#ifdef HAVE_GETTIMEOFDAY
-    struct timeval tv;
-    if (m68k_dreg (regs, 0) == 0)
-	return timehack_alive;
-
-    timehack_alive = 10;
-
-    gettimeofday (&tv, NULL);
-    put_long (m68k_areg (regs, 0), tv.tv_sec - (((365 * 8 + 2) * 24 - 2) * 60 * 60));
-    put_long (m68k_areg (regs, 0) + 4, tv.tv_usec);
-    return 0;
-#else
-    return 2;
-#endif
-}
 
  /*
   * register functions
@@ -599,18 +501,6 @@ static void BLTSIZH (uae_u16 v)
   fprintf(stderr,"blitter stroken in BLTSIZE (custom.c)...\n");
 }
 
-static inline void SPRxCTL_1 (uae_u16 v, int num)
-{
-}
-static inline void SPRxPOS_1 (uae_u16 v, int num)
-{
-}
-static inline void SPRxDATA_1 (uae_u16 v, int num)
-{
-}
-static inline void SPRxDATB_1 (uae_u16 v, int num)
-{
-}
 static void SPRxDATA (int hpos, uae_u16 v, int num) {}
 static void SPRxDATB (int hpos, uae_u16 v, int num) {}
 static void SPRxCTL (int hpos, uae_u16 v, int num) {}
@@ -1137,49 +1027,6 @@ static void do_copper (void)
     abort ();
 }
 
-static void adjust_array_sizes (void)
-{
-#ifdef OS_WITHOUT_MEMORY_MANAGEMENT
-    if (delta_sprite_draw) {
-	void *p1,*p2;
-	int mcc = max_sprite_draw + 200 + delta_sprite_draw;
-	delta_sprite_draw = 0;
-	p1 = realloc (sprite_positions[0], mcc * sizeof (struct sprite_draw));
-	p2 = realloc (sprite_positions[1], mcc * sizeof (struct sprite_draw));
-	if (p1) sprite_positions[0] = p1;
-	if (p2) sprite_positions[1] = p2;
-	if (p1 && p2) {
-	    fprintf (stderr, "new max_sprite_draw=%d\n",mcc);
-	    max_sprite_draw = mcc;
-	}
-    }
-    if (delta_color_change) {
-	void *p1,*p2;
-	int mcc = max_color_change + 200 + delta_color_change;
-	delta_color_change = 0;
-	p1 = realloc (color_changes[0], mcc * sizeof (struct color_change));
-	p2 = realloc (color_changes[1], mcc * sizeof (struct color_change));
-	if (p1) color_changes[0] = p1;
-	if (p2) color_changes[1] = p2;
-	if (p1 && p2) {
-	    fprintf (stderr, "new max_color_change=%d\n",mcc);
-	    max_color_change = mcc;
-	}
-    }
-    if (delta_delay_change) {
-	void *p;
-	int mcc = max_delay_change + 200 + delta_delay_change;
-	delta_delay_change = 0;
-	p = realloc (delay_changes, mcc * sizeof (struct delay_change));
-	if (p) {
-	    fprintf (stderr, "new max_delay_change=%d\n",mcc);
-	    delay_changes = p;
-	    max_delay_change = mcc;
-	}
-    }
-#endif
-}
-
 static void vsync_handler (void)
 {
     if (currprefs.m68k_speed == -1)
@@ -1305,7 +1152,6 @@ static void init_eventtab (void)
 
 void customreset (void)
 {
-    int i;
 #ifdef HAVE_GETTIMEOFDAY
     struct timeval tv;
 #endif
@@ -1322,9 +1168,6 @@ void customreset (void)
 
     clx_sprmask = 0xFF;
     clxdat = 0;
-
-    memset (sprarmed, 0, sizeof sprarmed);
-    nr_armed = 0;
 
     dmacon = intena = 0;
     cop_state.state = COP_stop;
@@ -1356,10 +1199,8 @@ void dumpcustom (void)
 	       (unsigned int)intena, (unsigned int)intreq, (unsigned int)vpos, (unsigned int)current_hpos(), cycles);
     write_log ("COP1LC: %08lx, COP2LC: %08lx\n", (unsigned long)cop1lc, (unsigned long)cop2lc);
     if (timeframes) {
-	write_log ("Average frame time: %d ms [frames: %d time: %d]\n",
+	write_log ("Average frame time: %ld ms [frames: %ld time: %ld]\n",
 		   frametime / timeframes, timeframes, frametime);
-	if (total_skipped)
-	    write_log ("Skipped frames: %d\n", total_skipped);
     }
 }
 
@@ -1382,15 +1223,6 @@ static void gen_custom_tables (void)
     int i;
     for (i = 0; i < 256; i++) {
 	unsigned int j;
-	sprtaba[i] = ((((i >> 7) & 1) << 0)
-		      | (((i >> 6) & 1) << 2)
-		      | (((i >> 5) & 1) << 4)
-		      | (((i >> 4) & 1) << 6)
-		      | (((i >> 3) & 1) << 8)
-		      | (((i >> 2) & 1) << 10)
-		      | (((i >> 1) & 1) << 12)
-		      | (((i >> 0) & 1) << 14));
-	sprtabb[i] = sprtaba[i] * 2;
 	for (j = 0; j < 511; j = (j << 1) | 1)
 	    if ((i & ~j) == 0)
 		waitmasktab[i] = ~j;

@@ -228,7 +228,7 @@ static void process_ahx_mod(char *credits, size_t credits_len,
 			break;
 		offset = offset + 1 + strlen((char *)buf + offset);
 		if (offset < len) {
-			snprintf(tmpstr, 256, "\n           %s", buf + offset);
+			snprintf(tmpstr, sizeof tmpstr, "\n           %s", buf + offset);
 			strlcat(credits, tmpstr, credits_len);
 		}
 	}
@@ -244,7 +244,7 @@ static void process_ptk_mod(char *credits, size_t credits_len, int inst,
 	if (!string_checker(buf, 0, len))
 		return;
 
-	snprintf(tmpstr, 35, "\nSong title:     %s", buf);
+	snprintf(tmpstr, sizeof tmpstr, "\nSong title:     %s", buf);
 	strlcat(credits, tmpstr, credits_len);
 
 	if (inst == 31) {
@@ -269,7 +269,7 @@ static void process_ptk_mod(char *credits, size_t credits_len, int inst,
 				break;
 			snprintf(tmpstr, sizeof tmpstr, "[%2d] - ", i + 1);
 			strlcat(credits, tmpstr, credits_len);
-			snprintf(tmpstr, 23, "%-23s", buf + 0x14 + (i * 0x1e));
+			snprintf(tmpstr, sizeof tmpstr, "%-23s", buf + 0x14 + (i * 0x1e));
 			strlcat(credits, tmpstr, credits_len);
 			snprintf(tmpstr, sizeof tmpstr,
 				 " %6d  %2d  %2d %6d %6d\n",
@@ -295,7 +295,7 @@ static void process_digi_mod(char *credits, size_t credits_len,
 	if (!string_checker(buf, 610, len))
 		return;
 
-	snprintf(tmpstr, 0x2f, "\nSong title:     %s \n", buf + 610);
+	snprintf(tmpstr, sizeof tmpstr, "\nSong title:     %s \n", buf + 610);
 	strlcat(credits, tmpstr, credits_len);
 
 	snprintf(tmpstr, sizeof tmpstr, "max positions:  %d\n", buf[47]);
@@ -309,7 +309,7 @@ static void process_digi_mod(char *credits, size_t credits_len,
 				break;
 			snprintf(tmpstr, sizeof tmpstr, "[%2d] - ", i + 1);
 			strlcat(credits, tmpstr, credits_len);
-			snprintf(tmpstr, 30, "%-30s", buf + 642 + (i * 0x1e));
+			snprintf(tmpstr, sizeof tmpstr, "%-30s", buf + 642 + (i * 0x1e));
 			strlcat(credits, tmpstr, credits_len);
 			snprintf(tmpstr, sizeof tmpstr,
 				 " %11d  %2d   %3d %11d %11d\n",

@@ -40,7 +40,7 @@ static void random_init(void)
 static int get_random(int max)
 {
 	ssize_t ret;
-	uint32_t rdata;
+	uint32_t rdata = 0;
 	if (!using_urandom)
 		goto nourandom;
 

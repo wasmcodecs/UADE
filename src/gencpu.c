@@ -57,7 +57,8 @@ static void read_counts (void)
 
     file = fopen ("frequent.68k", "r");
     if (file) {
-	fscanf (file, "Total: %lu\n", &total);
+	if (!fscanf (file, "Total: %lu\n", &total))
+		abort();
 	while (fscanf (file, "%lx: %lu %s\n", &opcode, &count, name) == 3) {
 	    opcode_next_clev[nr] = 3;
 	    opcode_last_postfix[nr] = -1;
@@ -2532,7 +2533,8 @@ int main (int argc, char **argv)
 
     headerfile = fopen ("cputbl.h", "wb");
     stblfile = fopen ("cpustbl.c", "wb");
-    freopen ("cpuemu.c", "wb", stdout);
+    if (!freopen ("cpuemu.c", "wb", stdout))
+		abort();
 
     generate_includes (stdout);
     generate_includes (stblfile);

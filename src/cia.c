@@ -238,8 +238,6 @@ void diskindex_handler(void)
 
 void CIA_hsync_handler(void)
 {
-    static unsigned int keytime = 0, sleepyhead = 0;
-
     if (ciabtodon)
 	ciabtod++;
     ciabtod &= 0xFFFFFF;
@@ -366,11 +364,10 @@ static uae_u8 ReadCIAB(unsigned int addr)
 
 static void WriteCIAA(uae_u16 addr,uae_u8 val)
 {
-    int oldled, oldovl;
+    //int oldovl;
     switch(addr & 0xf) {
      case 0:
-	oldovl = ciaapra & 1;
-	oldled = ciaapra & 2;
+	//oldovl = ciaapra & 1;
 	ciaapra = (ciaapra & ~0x3) | (val & 0x3); 
 	gui_ledstate = 0;
 	if (!gui_ledstate_forced) {
@@ -511,7 +508,6 @@ static void WriteCIAA(uae_u16 addr,uae_u8 val)
 
 static void WriteCIAB(uae_u16 addr,uae_u8 val)
 {
-    int oldval;
     switch(addr & 0xf) {
      case 0:
         ciabpra  = val;

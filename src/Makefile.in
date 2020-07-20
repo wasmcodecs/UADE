@@ -8,7 +8,7 @@ ARCHFLAGS = {ARCHFLAGS}
 ARCHLIBS = {ARCHLIBS}
 DEBUGFLAGS = {DEBUGFLAGS}
 
-COMMONGCCOPTS = -Wall -Wno-unused -Wno-format -Wmissing-prototypes -Wstrict-prototypes -fno-exceptions -O2
+COMMONGCCOPTS = -Wall -Wmissing-prototypes -Wstrict-prototypes -fno-exceptions -O2
 
 TARGETCFLAGS = -fomit-frame-pointer $(COMMONGCCOPTS) $(DEBUGFLAGS) $(ARCHFLAGS)
 LIBRARIES = -lm $(AUDIOLIBS) $(ARCHLIBS)
@@ -81,28 +81,28 @@ cpustbl.o: cpuemu.c
 	$(CC) $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS)  -o $@ cpustbl.c
 
 cpuemu1.o: cpuemu.c
-	$(CC) -DPART_1 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS)  -o $@ $<
+	$(CC) -DPART_1 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS) -Wno-unused-variable -o $@ $<
 
 cpuemu2.o: cpuemu.c
-	$(CC) -DPART_2 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS)  -o $@ $<
+	$(CC) -DPART_2 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS) -Wno-unused-variable -o $@ $<
 
 cpuemu3.o: cpuemu.c
-	$(CC) -DPART_3 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS)  -o $@ $<
+	$(CC) -DPART_3 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS) -Wno-unused-variable -o $@ $<
 
 cpuemu4.o: cpuemu.c
-	$(CC) -DPART_4 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS)  -o $@ $<
+	$(CC) -DPART_4 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS) -Wno-unused-variable -o $@ $<
 
 cpuemu5.o: cpuemu.c
-	$(CC) -DPART_5 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS)  -o $@ $<
+	$(CC) -DPART_5 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS) -Wno-unused-variable -o $@ $<
 
 cpuemu6.o: cpuemu.c
-	$(CC) -DPART_6 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS)  -o $@ $<
+	$(CC) -DPART_6 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS) -Wno-unused-variable -o $@ $<
 
 cpuemu7.o: cpuemu.c
-	$(CC) -DPART_7 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS)  -o $@ $<
+	$(CC) -DPART_7 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS) -Wno-unused-variable -o $@ $<
 
 cpuemu8.o: cpuemu.c
-	$(CC) -DPART_8 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS)  -Wno-sign-compare -o $@ $<
+	$(CC) -DPART_8 $(INCLUDES) -c $(INCDIRS) $(TARGETCFLAGS) -Wno-unused-variable -o $@ $<
 
 custom.o:	include/audio.h
 

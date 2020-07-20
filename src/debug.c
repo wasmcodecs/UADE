@@ -124,7 +124,7 @@ static void dumpmem (uaecptr addr, uaecptr *nxmem, int lines)
     broken_in = 0;
     for (;lines-- && !broken_in;) {
 	int i;
-	printf ("%08lx ", addr);
+	printf ("%08lx ", (long)addr);
 	tmpaddr = addr;
 	for (i = 0; i < 8; i++) {
 	    printf ("%04x ", get_word(addr)); addr += 2;
@@ -197,7 +197,7 @@ static void foundmod (uae_u32 ptr, char *type)
     uae_u8 *ptr2 = chipmemory + ptr;
     int i,length;
 
-    printf ("Found possible %s module at 0x%lx.\n", type, ptr);
+    printf ("Found possible %s module at 0x%lx.\n", type, (long)ptr);
     memcpy (name, ptr2, 20);
     name[20] = '\0';
 
@@ -214,7 +214,7 @@ static void foundmod (uae_u32 ptr, char *type)
     for (i = 0; i < 31; i++, ptr2 += 30)
 	length += 2*((ptr2[0]<<8)+ptr2[1]);
     
-    printf ("Name \"%s\", Length 0x%lx bytes.\n", name, length);
+    printf ("Name \"%s\", Length 0x%lx bytes.\n", name, (long)length);
 }
 
 static void modulesearch (void)
@@ -232,16 +232,16 @@ static void modulesearch (void)
 	    foundmod (ptr - 0x438, "Startrekker");
 
 	if (strncmp ((char *)p, "SMOD", 4) == 0) {
-	    printf ("Found possible FutureComposer 1.3 module at 0x%lx, length unknown.\n", ptr);
+	    printf ("Found possible FutureComposer 1.3 module at 0x%lx, length unknown.\n", (long)ptr);
 	}
 	if (strncmp ((char *)p, "FC14", 4) == 0) {
-	    printf ("Found possible FutureComposer 1.4 module at 0x%lx, length unknown.\n", ptr);
+	    printf ("Found possible FutureComposer 1.4 module at 0x%lx, length unknown.\n", (long)ptr);
 	}
 	if (p[0] == 0x48 && p[1] == 0xe7 && p[4] == 0x61 && p[5] == 0
 	    && p[8] == 0x4c && p[9] == 0xdf && p[12] == 0x4e && p[13] == 0x75
 	    && p[14] == 0x48 && p[15] == 0xe7 && p[18] == 0x61 && p[19] == 0
 	    && p[22] == 0x4c && p[23] == 0xdf && p[26] == 0x4e && p[27] == 0x75) {
-	    printf ("Found possible Whittaker module at 0x%lx, length unknown.\n", ptr);
+	    printf ("Found possible Whittaker module at 0x%lx, length unknown.\n", (long)ptr);
 	}
 	if (p[4] == 0x41 && p[5] == 0xFA) {
 	    int i;
@@ -253,7 +253,7 @@ static void modulesearch (void)
 		uae_u8 *p2 = p + i + 4;
 		for (i = 0; i < 0x30; i += 2)
 		    if (p2[i] == 0xD1 && p2[i + 1] == 0xFA) {
-			printf ("Found possible MarkII module at %lx, length unknown.\n", ptr);
+			printf ("Found possible MarkII module at %lx, length unknown.\n", (long)ptr);
 		    }
 	    }
 		
@@ -268,11 +268,8 @@ static void cheatsearch (char **c)
     static uae_u32 *vlist = NULL;
     uae_u32 ptr;
     uae_u32 val = 0;
-    uae_u32 type = 0; /* not yet */
     uae_u32 count = 0;
     uae_u32 fcount = 0;
-    uae_u32 full = 0;
-    char nc;
 
     val = readany(c);
 
@@ -291,8 +288,7 @@ static void cheatsearch (char **c)
 		    if (count < 255) {
 			vlist[count++]=ptr;
 			printf ("%08x: %x%x%x%x\n",ptr,p[0],p[1],p[2],p[3]);
-		    } else
-			full = 1;
+		    }
 		}
 	    }
 	    printf ("Found %d possible addresses with %d\n",count,val);
@@ -321,8 +317,6 @@ static void writeintomem (char **c)
     uae_u8 *p = get_real_address (0);
     uae_u32 addr = 0;
     uae_u32 val = 0;
-    char nc;
-    int numbase=10;     /* Numeric base for value is 10 by default ! */
     int opsize=4;       /* write operation is 32 bits by default ! */
 
     if(strncasecmp(".B",*c,2)==0) {
@@ -496,7 +490,7 @@ void debug (void) {
 	} else {
 	  printf ("Error reading file !\n");
 	}
-      R_fclose:
+	
 	fclose (fp);
 	break;
 	

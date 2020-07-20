@@ -309,7 +309,6 @@ static int getintval (char **p, int *result, int delim)
 int cfgfile_parse_option (struct uae_prefs *p, char *option, char *value)
 {
     int tmpval;
-    char *section = NULL;
     char *tmpp;
 
     for (tmpp = option; *tmpp != '\0'; tmpp++)
@@ -317,7 +316,6 @@ int cfgfile_parse_option (struct uae_prefs *p, char *option, char *value)
 	    *tmpp = tolower (*tmpp);
     tmpp = strchr (option, '.');
     if (tmpp) {
-	section = option;
 	option = tmpp + 1;
 	*tmpp = '\0';
 	return 0;
@@ -422,8 +420,8 @@ int cfgfile_parse_option (struct uae_prefs *p, char *option, char *value)
     if (strcmp (option, "filesystem") == 0
 	|| strcmp (option, "hardfile") == 0)
     {
-	int secs, heads, reserved, bs, ro;
-	char *aname, *root;
+	int secs, heads, reserved, bs;
+	char *root;
 	char *tmpp = strchr (value, ',');
 	char *str;
 	if (tmpp == NULL)
@@ -433,11 +431,11 @@ int cfgfile_parse_option (struct uae_prefs *p, char *option, char *value)
 	if (strcmp (value, "0") == 0 || strcasecmp (value, "ro") == 0
 	    || strcasecmp (value, "readonly") == 0
 	    || strcasecmp (value, "read-only") == 0)
-	    ro = 1;
+	    ;
 	else if (strcmp (value, "1") == 0 || strcasecmp (value, "rw") == 0
 		 || strcasecmp (value, "readwrite") == 0
 		 || strcasecmp (value, "read-write") == 0)
-	    ro = 0;
+	    ;
 	else
 	    goto invalid_fs;
 	secs = 0; heads = 0; reserved = 0; bs = 0;
@@ -448,7 +446,6 @@ int cfgfile_parse_option (struct uae_prefs *p, char *option, char *value)
 	    if (tmpp == NULL)
 		goto invalid_fs;
 	    *tmpp++ = '\0';
-	    aname = value;
 	    root = tmpp;
 	} else {
 	    if (! getintval (&value, &secs, ',')
@@ -457,7 +454,6 @@ int cfgfile_parse_option (struct uae_prefs *p, char *option, char *value)
 		|| ! getintval (&value, &bs, ','))
 		goto invalid_fs;
 	    root = value;
-	    aname = NULL;
 	}
 	str = cfgfile_subst_path (UNEXPANDED, p->path_hardfile, root);
 	free (str);
@@ -519,7 +515,6 @@ static void subst (char *p, char *f, int n)
 
 int cfgfile_load (struct uae_prefs *p, const char *filename)
 {
-    char *str;
     int i;
 
     FILE *fh;

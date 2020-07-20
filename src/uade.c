@@ -16,7 +16,6 @@
 #include "sysdeps.h"
 
 #include "options.h"
-#include "events.h"
 #include "uae.h"
 #include "memory.h"
 #include "custom.h"
@@ -66,7 +65,7 @@ static const int SCORE_MODULE_NAME_ADDR = 0x128;
 static const int SCORE_HAVE_SONGEND  = 0x12C;
 static const int SCORE_POSTPAUSE     = 0x180;
 static const int SCORE_PREPAUSE      = 0x184;
-static const int SCORE_DELIMON       = 0x188;
+//static const int SCORE_DELIMON       = 0x188;
 static const int SCORE_EXEC_DEBUG    = 0x18C;
 static const int SCORE_VOLUME_TEST   = 0x190;
 static const int SCORE_DMA_WAIT      = 0x194;
@@ -150,7 +149,6 @@ static int get_info_for_ep(char *dst, char *src, int maxlen)
 static int amiga_get_u32(int addr)
 {
   uae_u32 *ptr;
-  int x;
   if (!valid_address(addr, 4)) {
     fprintf(stderr, "uadecore: Invalid amiga_get_u32 (0x%x).\n", addr);
     return 0;
@@ -302,11 +300,9 @@ static struct uade_file *lookup_amiga_file_cache(const char *filename)
 
 void uadecore_get_amiga_message(void)
 {
-  uae_u8 *ptr;
   uae_u8 *nameptr;
   int x;
   unsigned int mins, maxs, curs;
-  int status;
   int src, dst, len;
   size_t off;
   char tmpstr[256];
@@ -673,7 +669,7 @@ void uadecore_handle_r_state(void)
 
 void uadecore_option(int argc, char **argv)
 {
-  int i, j, no_more_opts;
+  int i, j;
   char **s_argv;
   int s_argc;
   int cfg_loaded = 0;
@@ -687,8 +683,6 @@ void uadecore_option(int argc, char **argv)
   big_endian = (htonl(0x1234) == 0x1234);
 
   memset(&song, 0, sizeof(song));
-
-  no_more_opts = 0;
 
   s_argv = malloc(sizeof(argv[0]) * (argc + 1));
   if (!s_argv) {
@@ -828,9 +822,6 @@ void uadecore_reset(void)
   int bytesread;
   struct uade_file *player;
   struct uade_file *module;
-
-  uint8_t command[UADE_MAX_MESSAGE_SIZE];
-  struct uade_msg *um = (struct uade_msg *) command;
 
   int ret;
 
@@ -1098,29 +1089,6 @@ static int uade_safe_load(int dst, FILE *file, int maxlen)
     off += nbytes;
 
   return off;
-}
-
-static void uade_safe_get_string(char *dst, int src, int maxlen)
-{
-  int i = 0;
-  while (1) {
-    if (i >= maxlen)
-      break;
-    if (!valid_address(src + i, 1)) {
-      fprintf(stderr, "uadecore: Invalid memory range in safe_get_string.\n");
-      break;
-    }
-    dst[i] = * (char *) get_real_address(src + i);
-    i++;
-  }
-  if (maxlen > 0) {
-    if (i < maxlen) {
-      dst[i] = 0;
-    } else { 
-      fprintf(stderr, "uadecore: Warning: string truncated.\n");
-      dst[maxlen - 1] = 0;
-    }
-  }
 }
 
 

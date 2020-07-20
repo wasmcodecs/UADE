@@ -55,7 +55,7 @@ static void events_schedule (void)
   nextevent = cycles + mintime;
 }
 
-static void do_cycles_slow (unsigned long cycles_to_add) {
+static inline void do_cycles_slow (unsigned long cycles_to_add) {
   if ((nextevent - cycles) <= cycles_to_add) {
     for (; cycles_to_add != 0; cycles_to_add--) {
       if (++cycles == nextevent) {

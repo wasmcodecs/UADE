@@ -76,7 +76,7 @@ static int dummy_check (uaecptr addr, uae_u32 size) REGPARAM;
 static uae_u32 REGPARAM2 dummy_lget (uaecptr addr)
 {
     if (currprefs.illegal_mem)
-	write_log ("Illegal lget at %08lx\n", addr);
+	write_log ("Illegal lget at %08lx\n", (long)addr);
 
     return 0;
 }
@@ -84,7 +84,7 @@ static uae_u32 REGPARAM2 dummy_lget (uaecptr addr)
 static uae_u32 REGPARAM2 dummy_wget (uaecptr addr)
 {
     if (currprefs.illegal_mem)
-	write_log ("Illegal wget at %08lx\n", addr);
+	write_log ("Illegal wget at %08lx\n", (long)addr);
 
     return 0;
 }
@@ -92,7 +92,7 @@ static uae_u32 REGPARAM2 dummy_wget (uaecptr addr)
 static uae_u32 REGPARAM2 dummy_bget (uaecptr addr)
 {
     if (currprefs.illegal_mem)
-	write_log ("Illegal bget at %08lx\n", addr);
+	write_log ("Illegal bget at %08lx\n", (long)addr);
 
     return 0;
 }
@@ -100,85 +100,23 @@ static uae_u32 REGPARAM2 dummy_bget (uaecptr addr)
 static void REGPARAM2 dummy_lput (uaecptr addr, uae_u32 l)
 {
     if (currprefs.illegal_mem)
-	write_log ("Illegal lput at %08lx\n", addr);
+	write_log ("Illegal lput at %08lx\n", (long)addr);
 }
 static void REGPARAM2 dummy_wput (uaecptr addr, uae_u32 w)
 {
     if (currprefs.illegal_mem)
-	write_log ("Illegal wput at %08lx\n", addr);
+	write_log ("Illegal wput at %08lx\n", (long)addr);
 }
 static void REGPARAM2 dummy_bput (uaecptr addr, uae_u32 b)
 {
     if (currprefs.illegal_mem)
-	write_log ("Illegal bput at %08lx\n", addr);
+	write_log ("Illegal bput at %08lx\n", (long)addr);
 }
 
 static int REGPARAM2 dummy_check (uaecptr addr, uae_u32 size)
 {
     if (currprefs.illegal_mem)
-	write_log ("Illegal check at %08lx\n", addr);
-
-    return 0;
-}
-
-/* A3000 "motherboard resources" bank.  */
-static uae_u32 mbres_lget (uaecptr) REGPARAM;
-static uae_u32 mbres_wget (uaecptr) REGPARAM;
-static uae_u32 mbres_bget (uaecptr) REGPARAM;
-static void mbres_lput (uaecptr, uae_u32) REGPARAM;
-static void mbres_wput (uaecptr, uae_u32) REGPARAM;
-static void mbres_bput (uaecptr, uae_u32) REGPARAM;
-static int mbres_check (uaecptr addr, uae_u32 size) REGPARAM;
-
-static int mbres_val = 0;
-
-static uae_u32 REGPARAM2 mbres_lget (uaecptr addr)
-{
-    if (currprefs.illegal_mem)
-	write_log ("Illegal lget at %08lx\n", addr);
-
-    return 0;
-}
-
-static uae_u32 REGPARAM2 mbres_wget (uaecptr addr)
-{
-    if (currprefs.illegal_mem)
-	write_log ("Illegal wget at %08lx\n", addr);
-
-    return 0;
-}
-
-static uae_u32 REGPARAM2 mbres_bget (uaecptr addr)
-{
-    if (currprefs.illegal_mem)
-	write_log ("Illegal bget at %08lx\n", addr);
-
-    return (addr & 0xFFFF) == 3 ? mbres_val : 0;
-}
-
-static void REGPARAM2 mbres_lput (uaecptr addr, uae_u32 l)
-{
-    if (currprefs.illegal_mem)
-	write_log ("Illegal lput at %08lx\n", addr);
-}
-static void REGPARAM2 mbres_wput (uaecptr addr, uae_u32 w)
-{
-    if (currprefs.illegal_mem)
-	write_log ("Illegal wput at %08lx\n", addr);
-}
-static void REGPARAM2 mbres_bput (uaecptr addr, uae_u32 b)
-{
-    if (currprefs.illegal_mem)
-	write_log ("Illegal bput at %08lx\n", addr);
-
-    if ((addr & 0xFFFF) == 3)
-	mbres_val = b;
-}
-
-static int REGPARAM2 mbres_check (uaecptr addr, uae_u32 size)
-{
-    if (currprefs.illegal_mem)
-	write_log ("Illegal check at %08lx\n", addr);
+	write_log ("Illegal check at %08lx\n", (long)addr);
 
     return 0;
 }
@@ -455,19 +393,19 @@ static uae_u32 REGPARAM2 kickmem_bget (uaecptr addr)
 static void REGPARAM2 kickmem_lput (uaecptr addr, uae_u32 b)
 {
     if (currprefs.illegal_mem)
-	write_log ("Illegal kickmem lput at %08lx\n", addr);
+	write_log ("Illegal kickmem lput at %08lx\n", (long)addr);
 }
 
 static void REGPARAM2 kickmem_wput (uaecptr addr, uae_u32 b)
 {
     if (currprefs.illegal_mem)
-	write_log ("Illegal kickmem wput at %08lx\n", addr);
+	write_log ("Illegal kickmem wput at %08lx\n", (long)addr);
 }
 
 static void REGPARAM2 kickmem_bput (uaecptr addr, uae_u32 b)
 {
     if (currprefs.illegal_mem)
-	write_log ("Illegal kickmem lput at %08lx\n", addr);
+	write_log ("Illegal kickmem lput at %08lx\n", (long)addr);
 }
 
 static int REGPARAM2 kickmem_check (uaecptr addr, uae_u32 size)
@@ -505,12 +443,6 @@ static addrbank dummy_bank = {
     default_xlate, dummy_check
 };
 
-static addrbank mbres_bank = {
-    mbres_lget, mbres_wget, mbres_bget,
-    mbres_lput, mbres_wput, mbres_bput,
-    default_xlate, mbres_check
-};
-
 addrbank chipmem_bank = {
     chipmem_lget, chipmem_wget, chipmem_bget,
     chipmem_lput, chipmem_wput, chipmem_bput,
@@ -536,7 +468,6 @@ addrbank kickmem_bank = {
 };
 
 char *address_space, *good_address_map;
-static int good_address_fd;
 
 static void init_mem_banks (void)
 {
