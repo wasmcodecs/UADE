@@ -1,6 +1,7 @@
 *.o
 *.so
 uade.pc
+libuade.pc
 Makefile
 src/Makefile
 src/frontends/*/Makefile
