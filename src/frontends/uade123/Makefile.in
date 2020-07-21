@@ -27,6 +27,7 @@ install:	uade123
 
 uninstall:	
 	rm -f "$(BINDIR)/$(UADE123NAME)"
+	rm -f "$(BINDIR)/mod2ogg2.sh"
 
 audio.o:	audio.c audio.h
 chrarray.o:	chrarray.c chrarray.h
